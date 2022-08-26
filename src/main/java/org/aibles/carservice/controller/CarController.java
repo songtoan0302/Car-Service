@@ -36,7 +36,7 @@ public class CarController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public CarResponse add(@RequestBody CarCreate carCreate) {
-    log.info("(create)carDTO: {}", carCreate);
+    log.info("(create)carCreate: {}", carCreate);
     return carService.create(carCreate);
   }
 
@@ -71,7 +71,7 @@ public class CarController {
   @PutMapping(path = "{id}")
   public CarResponse update(
       @RequestBody @Valid CarUpdate carUpdate, @PathVariable("id") String id) {
-    log.info("(update)carDTO: {}, id: {}", carUpdate, id);
+    log.info("(update)carUpdate: {}, id: {}", carUpdate, id);
     return carService.update(carUpdate, id);
   }
 }

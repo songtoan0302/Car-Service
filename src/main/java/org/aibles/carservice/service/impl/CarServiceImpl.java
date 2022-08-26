@@ -39,7 +39,7 @@ public class CarServiceImpl implements CarService {
   @Override
   @Transactional
   public CarResponse create(CarCreate carCreate) {
-    log.info("(create)CarDTO: {}", carCreate);
+    log.info("(create)carCreate: {}", carCreate);
     Car car = modelMapper.map(carCreate, Car.class);
     if (Objects.isNull(car)) throw new InternalServerException("Mapping fails!");
     return modelMapper.map(carRepository.save(car), CarResponse.class);
@@ -78,7 +78,7 @@ public class CarServiceImpl implements CarService {
   @Override
   @Transactional
   public CarResponse update(CarUpdate carUpdate, String id) {
-    log.info("(update)carDTO: {}, id: {} ", carUpdate, id);
+    log.info("(update)carUpdate: {}, id: {} ", carUpdate, id);
     Car car =
         carRepository
             .findById(id)
@@ -123,7 +123,7 @@ public class CarServiceImpl implements CarService {
   @Override
   @Transactional(readOnly = true)
   public Page<CarResponseDetails> list(Pageable pageable) {
-    log.info("(list)page: {}", pageable);
+    log.info("(list)pageable: {}", pageable);
     return carRepository.findAll(pageable).map(car -> modelMapper.map(car, CarResponseDetails.class));
   }
 }

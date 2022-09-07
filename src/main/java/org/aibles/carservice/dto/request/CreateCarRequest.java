@@ -7,14 +7,15 @@ import lombok.Data;
  * @author ToanNS
  */
 @Data
-public class CarCreate {
-  @NotBlank
+public class CreateCarRequest {
+
+  @NotBlank(message = "name can't blank!")
   private String name;
-  @NotBlank
+  @NotBlank(message = "brand can't blank!")
   private String brand;
-  @NotBlank
+  @NotBlank(message = "engine type can't blank!")
   private String engineType;
-  @NotBlank
+  @NotBlank(message = "color can't blank!")
   private String color;
   private long price;
   private int amount;

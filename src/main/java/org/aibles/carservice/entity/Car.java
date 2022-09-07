@@ -6,34 +6,36 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
+import org.aibles.carservice.validation.ModelValidator;
 
 @Data
 @Entity
-@Table(name = "cars")
-public class Car {
+@Table(name = "car")
+public class Car extends ModelValidator<Car> {
 
   @Id
-  @Column(name = "id")
   private String id;
 
-  @Column(name = "name")
+  @NotBlank
   private String name;
 
-  @Column(name = "brand")
+  @NotBlank
   private String brand;
 
-  @Column(name = "engine_type")
+  @NotBlank
   private String engineType;
 
-  @Column(name = "color")
+  @NotBlank
   private String color;
 
-  @Column(name = "price")
-  private long price;
+  @NotNull
+  private Long price;
 
-  @Column(name = "amount")
-  private int amount;
+  @NotNull
+  private Integer amount;
 
   @PrePersist
   private void prePersistId() {

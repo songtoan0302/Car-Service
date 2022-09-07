@@ -3,13 +3,12 @@ package org.aibles.carservice.controller;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aibles.carservice.component.paging.PagingReq;
-import org.aibles.carservice.component.paging.PagingRes;
-import org.aibles.carservice.dto.request.CarCreate;
-import org.aibles.carservice.dto.request.CarUpdate;
-import org.aibles.carservice.dto.response.CarResponse;
-import org.aibles.carservice.dto.response.CarResponseDetails;
+import org.aibles.carservice.dto.request.CreateCarRequest;
+import org.aibles.carservice.dto.request.UpdateCarRequest;
+import org.aibles.carservice.dto.response.CarResponseDTO;
 import org.aibles.carservice.service.CarService;
+import org.aibles.carservice.utils.paging.PagingReq;
+import org.aibles.carservice.utils.paging.PagingRes;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,47 +30,47 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CarController {
 
-  private final CarService carService;
+  private final CarService service;
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public CarResponse add(@RequestBody CarCreate carCreate) {
-    log.info("(create)carCreate: {}", carCreate);
-    return carService.create(carCreate);
+  public CarResponseDTO add(@RequestBody @Valid CreateCarRequest createCarRequest) {
+    log.info("(create)carCreate: {}", createCarRequest);
+    return service.create(createCarRequest);
   }
 
   @DeleteMapping(path = "{id}")
   @ResponseStatus(HttpStatus.OK)
   public void delete(@PathVariable("id") String id) {
     log.info("(delete)id: {} ", id);
-    carService.delete(id);
+    service.delete(id);
   }
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.OK)
   public void deleteAll() {
     log.info("(deleteAll)");
-    carService.deleteAll();
+    service.deleteAll();
   }
 
   @GetMapping(path = "{id}")
   @ResponseStatus(HttpStatus.OK)
-  public CarResponse get(@PathVariable("id") String id) {
+  public CarResponseDTO get(@PathVariable("id") String id) {
     log.info("(get)id: {}", id);
-    return carService.get(id);
+    return service.get(id);
   }
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  public PagingRes<CarResponseDetails> list(@Validated() final PagingReq pagingReq) {
+  public PagingRes<CarResponseDTO> list(@Validated() final PagingReq pagingReq) {
     log.info("(list)pagingReq: {}", pagingReq);
-    return PagingRes.of(carService.list(pagingReq.makePageable()));
+    return PagingRes.of(service.list(pagingReq.makePageable()));
   }
 
   @PutMapping(path = "{id}")
-  public CarResponse update(
-      @RequestBody @Valid CarUpdate carUpdate, @PathVariable("id") String id) {
-    log.info("(update)carUpdate: {}, id: {}", carUpdate, id);
-    return carService.update(carUpdate, id);
+  public CarResponseDTO update(@PathVariable("id") String id,
+      @RequestBody @Valid UpdateCarRequest carUpdate) {
+    log.info("(update)id: {}, carUpdate: {}", id, carUpdate);
+    return service.update(id, carUpdate);
   }
 }

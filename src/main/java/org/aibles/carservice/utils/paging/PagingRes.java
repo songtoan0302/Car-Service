@@ -1,4 +1,4 @@
-package org.aibles.carservice.component.paging;
+package org.aibles.carservice.utils.paging;
 
 /**
  * @author toanns

@@ -1,13 +1,10 @@
 package org.aibles.carservice.service.impl;
 
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.aibles.carservice.dto.request.CarCreate;
-import org.aibles.carservice.dto.request.CarUpdate;
-import org.aibles.carservice.dto.response.CarResponse;
-import org.aibles.carservice.dto.response.CarResponseDetails;
+import org.aibles.carservice.dto.request.CreateCarRequest;
+import org.aibles.carservice.dto.request.UpdateCarRequest;
+import org.aibles.carservice.dto.response.CarResponseDTO;
 import org.aibles.carservice.entity.Car;
-import org.aibles.carservice.exceptions.InternalServerException;
 import org.aibles.carservice.exceptions.NotFoundException;
 import org.aibles.carservice.repository.CarRepository;
 import org.aibles.carservice.service.CarService;
@@ -22,27 +19,29 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class CarServiceImpl implements CarService {
 
-  private final CarRepository carRepository;
-  private final ModelMapper modelMapper;
+  private final CarRepository repository;
+  private final ModelMapper modelMapper ;
 
-  public CarServiceImpl(CarRepository carRepository, ModelMapper modelMapper) {
-    this.carRepository = carRepository;
+  public CarServiceImpl(CarRepository repository, ModelMapper modelMapper) {
+    this.repository = repository;
     this.modelMapper = modelMapper;
   }
 
   /**
    * create a car
    *
-   * @param carCreate
+   * @param request
    * @return CarResponse
    */
   @Override
   @Transactional
-  public CarResponse create(CarCreate carCreate) {
-    log.info("(create)carCreate: {}", carCreate);
-    Car car = modelMapper.map(carCreate, Car.class);
-    if (Objects.isNull(car)) throw new InternalServerException("Mapping fails!");
-    return modelMapper.map(carRepository.save(car), CarResponse.class);
+  public CarResponseDTO create(CreateCarRequest request) {
+    log.info("(create)carCreate: {}", request);
+    var car = modelMapper.map(request, Car.class);
+    car.validate();
+    var carResponseDTO = modelMapper.map(repository.save(car), CarResponseDTO.class);
+    carResponseDTO.validate();
+    return carResponseDTO;
   }
 
   /**
@@ -50,21 +49,26 @@ public class CarServiceImpl implements CarService {
    *
    * @param id
    */
-  @Cacheable(value = "car", key = "#id")
+  @CacheEvict(value = "car", key = "#id")
   @Override
   @Transactional
   public void delete(String id) {
     log.info("(delete)");
-    carRepository.deleteById(id);
+    if (repository.existsById(id)) {
+      throw new NotFoundException(id);
+    }
+    repository.deleteById(id);
   }
 
-  /** delete all car no return no param */
+  /**
+   * delete all car no return no param
+   */
   @CacheEvict
   @Override
   @Transactional
   public void deleteAll() {
     log.info("(deleteAll)");
-    carRepository.deleteAll();
+    repository.deleteAll();
   }
 
   /**
@@ -77,20 +81,17 @@ public class CarServiceImpl implements CarService {
   @CachePut(value = "car", key = "#id")
   @Override
   @Transactional
-  public CarResponse update(CarUpdate carUpdate, String id) {
+  public CarResponseDTO update(String id, UpdateCarRequest carUpdate) {
     log.info("(update)carUpdate: {}, id: {} ", carUpdate, id);
-    Car car =
-        carRepository
-            .findById(id)
-            .orElseThrow(
-                () -> {
-                  throw new NotFoundException(id);
-                });
-    Car carUpdated = modelMapper.map(carUpdate, Car.class);
-    if (Objects.isNull(carUpdated)) throw new InternalServerException("Mapping fails");
-    carUpdated.setId(car.getId());
-    carUpdated = carRepository.save(carUpdated);
-    return modelMapper.map(carUpdated, CarResponse.class);
+    var car = repository.findById(id)
+            .map(exist -> modelMapper.map(carUpdate, Car.class))
+            .orElseThrow(() -> {throw new NotFoundException(id);});
+    car.setId(id);
+    car.validate();
+    car = repository.save(car);
+    var response = modelMapper.map(car, CarResponseDTO.class);
+    response.validate();
+    return response;
   }
 
   /**
@@ -102,16 +103,19 @@ public class CarServiceImpl implements CarService {
   @Cacheable(value = "car", key = "#id")
   @Override
   @Transactional(readOnly = true)
-  public CarResponse get(String id) {
+  public CarResponseDTO get(String id) {
     log.info("(get)id: {} ", id);
-    Car car =
-        carRepository
+    var car =
+        repository
             .findById(id)
             .orElseThrow(
                 () -> {
                   throw new NotFoundException(id);
                 });
-    return modelMapper.map(car, CarResponse.class);
+    car.validate();
+    var response =modelMapper.map(car, CarResponseDTO.class);
+    response.validate();
+    return response;
   }
 
   /**
@@ -122,8 +126,13 @@ public class CarServiceImpl implements CarService {
    */
   @Override
   @Transactional(readOnly = true)
-  public Page<CarResponseDetails> list(Pageable pageable) {
+  public Page<CarResponseDTO> list(Pageable pageable) {
     log.info("(list)pageable: {}", pageable);
-    return carRepository.findAll(pageable).map(car -> modelMapper.map(car, CarResponseDetails.class));
+    Page<Car> responseDTOPage = repository.findAll(pageable);
+    return mapPage(responseDTOPage);
+  }
+
+  private Page<CarResponseDTO> mapPage(Page<Car> pageIn) {
+    return pageIn.map(exist -> modelMapper.map(exist, CarResponseDTO.class));
   }
 }

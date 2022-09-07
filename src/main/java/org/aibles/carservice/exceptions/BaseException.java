@@ -1,6 +1,5 @@
 package org.aibles.carservice.exceptions;
 
-import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,7 +8,7 @@ import java.util.Map;
  */
 public class BaseException extends RuntimeException {
 
-  @Serial private static final long serialVersionUID = -65345345345453L;
+  private static final long serialVersionUID = -65345345345453L;
 
   private int status;
   private String code;

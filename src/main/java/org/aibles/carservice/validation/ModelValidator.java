@@ -14,6 +14,21 @@ public class ModelValidator<T> {
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory()
       .getValidator();
 
+  public Map<String, Object> isValid(){
+    var errorMap = new HashMap<String, Object>();
+
+    var violations = VALIDATOR.validate(this);
+    if (!violations.isEmpty()) {
+      log.info("(isValid){} --> INVALID", this.getClass().getTypeName());
+
+      for (var violation : violations) {
+        errorMap.put(getField(violation), violation.getMessage());
+      }
+    }
+
+   return errorMap;
+  }
+
   public void validate() {
     var errorMap = new HashMap<String, Object>();
 
@@ -28,7 +43,7 @@ public class ModelValidator<T> {
 
     if (!errorMap.isEmpty()) {
       log.error("(isValid){}", errorMap);
-      throw new BadRequestException("invalid entity");
+      throw new BadRequestException(errorMap);
     }
   }
 

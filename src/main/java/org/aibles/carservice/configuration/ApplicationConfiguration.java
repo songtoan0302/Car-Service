@@ -1,6 +1,5 @@
 package org.aibles.carservice.configuration;
 
-import org.aibles.carservice.dto.mapper.ModelMapperSingleton;
 import org.aibles.carservice.repository.CarRepository;
 import org.aibles.carservice.service.CarService;
 import org.aibles.carservice.service.impl.CarServiceImpl;
@@ -17,11 +16,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = {"org.aibles.carservice.reporitory"})
 @EnableJpaRepositories(basePackages = {"org.aibles.carservice.repository"})
 @EnableCaching
-public class CarConfiguration {
+public class ApplicationConfiguration {
 
   @Bean
   public CarService carService(CarRepository repository) {
-    return new CarServiceImpl(repository, ModelMapperSingleton.getInstance());
+    return new CarServiceImpl(repository);
   }
 
 }

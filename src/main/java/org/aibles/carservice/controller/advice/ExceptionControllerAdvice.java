@@ -25,8 +25,8 @@ public class ExceptionControllerAdvice {
   public ResponseEntity<ExceptionResponse> baseExceptionHandler(BaseException error) {
     log.error("(Exception) errorCode: {}", error.getCode());
     ExceptionResponse exceptionResponse = new ExceptionResponse();
-    exceptionResponse.setError("Exception!");
-    exceptionResponse.setMessage(error.getCode());
+    exceptionResponse.setError(error.getCode());
+    exceptionResponse.setMessage(error.getParams());
     exceptionResponse.setTimestamp(Instant.now());
     return new ResponseEntity<>(exceptionResponse, HttpStatus.valueOf(error.getStatus()));
   }

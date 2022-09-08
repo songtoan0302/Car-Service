@@ -5,10 +5,10 @@ import org.aibles.carservice.dto.request.CreateCarRequest;
 import org.aibles.carservice.dto.request.UpdateCarRequest;
 import org.aibles.carservice.dto.response.CarResponseDTO;
 import org.aibles.carservice.entity.Car;
+import org.aibles.carservice.exceptions.BadRequestException;
 import org.aibles.carservice.exceptions.NotFoundException;
 import org.aibles.carservice.repository.CarRepository;
 import org.aibles.carservice.service.CarService;
-import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -20,28 +20,29 @@ import org.springframework.transaction.annotation.Transactional;
 public class CarServiceImpl implements CarService {
 
   private final CarRepository repository;
-  private final ModelMapper modelMapper ;
 
-  public CarServiceImpl(CarRepository repository, ModelMapper modelMapper) {
+  public CarServiceImpl(CarRepository repository) {
     this.repository = repository;
-    this.modelMapper = modelMapper;
   }
 
   /**
    * create a car
    *
    * @param request
-   * @return CarResponse
+   * @return CarResponseDTO
    */
   @Override
   @Transactional
   public CarResponseDTO create(CreateCarRequest request) {
     log.info("(create)carCreate: {}", request);
-    var car = modelMapper.map(request, Car.class);
+    request.validateDataTypePrimitive();
+
+    var car = request.toEntity();
     car.validate();
-    var carResponseDTO = modelMapper.map(repository.save(car), CarResponseDTO.class);
-    carResponseDTO.validate();
-    return carResponseDTO;
+
+    var response =  CarResponseDTO.toDTO(repository.save(car));
+    response.validate();
+    return response;
   }
 
   /**
@@ -74,55 +75,55 @@ public class CarServiceImpl implements CarService {
   /**
    * update a car
    *
-   * @param carUpdate
-   * @param id
-   * @return CarResponse
+   * @param updateCarRequest
+   * @return CarResponseDTO
    */
   @CachePut(value = "car", key = "#id")
   @Override
   @Transactional
-  public CarResponseDTO update(String id, UpdateCarRequest carUpdate) {
-    log.info("(update)carUpdate: {}, id: {} ", carUpdate, id);
-    var car = repository.findById(id)
-            .map(exist -> modelMapper.map(carUpdate, Car.class))
-            .orElseThrow(() -> {throw new NotFoundException(id);});
-    car.setId(id);
-    car.validate();
-    car = repository.save(car);
-    var response = modelMapper.map(car, CarResponseDTO.class);
-    response.validate();
-    return response;
+  public CarResponseDTO update(UpdateCarRequest updateCarRequest) {
+    log.info("(update)carUpdate: {}", updateCarRequest);
+    updateCarRequest.validateDataTypePrimitive();
+    return repository.findById(updateCarRequest.getId())
+        .map(exist -> {
+          exist = updateCarRequest.toEntity();
+          exist.validate();
+          exist = repository.save(exist);
+
+          var response = CarResponseDTO.toDTO(exist);
+          response.validate();
+          return response;
+        })
+        .orElseThrow(() -> {throw new NotFoundException(updateCarRequest.getId());});
+
   }
 
   /**
    * get a car by id
    *
    * @param id
-   * @return CarResponse
+   * @return CarResponseDTO
    */
   @Cacheable(value = "car", key = "#id")
   @Override
   @Transactional(readOnly = true)
   public CarResponseDTO get(String id) {
     log.info("(get)id: {} ", id);
-    var car =
-        repository
-            .findById(id)
-            .orElseThrow(
-                () -> {
-                  throw new NotFoundException(id);
-                });
-    car.validate();
-    var response =modelMapper.map(car, CarResponseDTO.class);
-    response.validate();
-    return response;
+    return repository
+        .findById(id)
+        .map(exist -> {
+          var response = CarResponseDTO.toDTO(exist);
+          response.validate();
+          return response;
+        })
+        .orElseThrow(() -> {throw new NotFoundException(id);});
   }
 
   /**
    * get all car
    *
    * @param pageable
-   * @return Page<CarResponseDetails>
+   * @return Page<CarResponseDTO>
    */
   @Override
   @Transactional(readOnly = true)
@@ -133,6 +134,10 @@ public class CarServiceImpl implements CarService {
   }
 
   private Page<CarResponseDTO> mapPage(Page<Car> pageIn) {
-    return pageIn.map(exist -> modelMapper.map(exist, CarResponseDTO.class));
+    return pageIn.map(exist -> {
+      var response = CarResponseDTO.toDTO(exist);
+      response.validate();
+      return response;
+    });
   }
 }

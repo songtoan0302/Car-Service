@@ -34,7 +34,7 @@ public class CarController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public CarResponseDTO add(@RequestBody @Valid CreateCarRequest createCarRequest) {
+  public CarResponseDTO add(@RequestBody @Validated CreateCarRequest createCarRequest) {
     log.info("(create)carCreate: {}", createCarRequest);
     return service.create(createCarRequest);
   }
@@ -62,15 +62,14 @@ public class CarController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  public PagingRes<CarResponseDTO> list(@Validated() final PagingReq pagingReq) {
+  public PagingRes<CarResponseDTO> list(@Validated final PagingReq pagingReq) {
     log.info("(list)pagingReq: {}", pagingReq);
     return PagingRes.of(service.list(pagingReq.makePageable()));
   }
 
-  @PutMapping(path = "{id}")
-  public CarResponseDTO update(@PathVariable("id") String id,
-      @RequestBody @Valid UpdateCarRequest carUpdate) {
-    log.info("(update)id: {}, carUpdate: {}", id, carUpdate);
-    return service.update(id, carUpdate);
+  @PutMapping
+  public CarResponseDTO update(@RequestBody @Valid UpdateCarRequest updateCarRequest) {
+    log.info("(update)carUpdate: {}", updateCarRequest);
+    return service.update(updateCarRequest);
   }
 }

@@ -46,8 +46,7 @@ public interface CarService {
    * update a car
    *
    * @param carUpdate
-   * @param id
    * @return CarResponse
    */
-  CarResponseDTO update(String id, UpdateCarRequest carUpdate);
+  CarResponseDTO update(UpdateCarRequest carUpdate);
 }

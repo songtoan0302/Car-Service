@@ -3,6 +3,7 @@ package org.aibles.carservice.dto.response;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
+import org.aibles.carservice.entity.Car;
 import org.aibles.carservice.validation.ModelValidator;
 
 /**
@@ -24,4 +25,16 @@ public class CarResponseDTO extends ModelValidator<CarResponseDTO> {
   private Long price;
   @NotNull
   private Integer amount;
+
+  public static CarResponseDTO toDTO(Car car) {
+    CarResponseDTO carResponseDTO = new CarResponseDTO();
+    carResponseDTO.setId(car.getId());
+    carResponseDTO.setName(car.getName());
+    carResponseDTO.setBrand(car.getBrand());
+    carResponseDTO.setEngineType(car.getEngineType());
+    carResponseDTO.setColor(car.getColor());
+    carResponseDTO.setPrice(car.getPrice());
+    carResponseDTO.setAmount(car.getAmount());
+    return carResponseDTO;
+  }
 }
